@@ -251,7 +251,10 @@ class OpenCodeAdapter(PresetAdapter):
         now, cached = self._model_cache
         if cached and time.monotonic() - now < 600:
             return cached
-        result = await cli_probe.run([*program, "models"], timeout=3, env=env)
+        # The OpenCode CLI can take over 3s just to start and list its models on
+        # a small server; a 3s probe timed out and reported the engine as having
+        # no models. Give it room to answer.
+        result = await cli_probe.run([*program, "models"], timeout=15, env=env)
         models = []
         if result.ok:
             for line in result.stdout.splitlines():
